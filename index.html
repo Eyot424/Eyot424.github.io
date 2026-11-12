@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f4f5f8" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0e1013" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f4f5f8">
+<meta name="color-scheme" content="light">
 <title>生活</title>
 <style>
 :root{
@@ -13,12 +13,6 @@
   --red:#e5484d;--red-soft:#fff0f0;--amber:#d97706;--amber-soft:#fff6e6;--blue:#2f6fed;--blue-soft:#ecf3ff;--green:#16a34a;--green-soft:#eafaf0;
   --gray-soft:#f1f3f6;--shadow:0 1px 2px rgba(16,24,40,.04),0 4px 14px rgba(16,24,40,.05);--r:16px;
 }
-@media (prefers-color-scheme:dark){:root{
-  --bg:#0e1013;--panel:#171a1f;--panel2:#1d2127;--text:#e8eaee;--sub:#9aa3b2;--faint:#6b7280;--line:#262a31;
-  --accent:#8b8cff;--accent2:#b18cff;--accent-soft:#23243d;
-  --red:#ff6b6f;--red-soft:#3a1d20;--amber:#f5b546;--amber-soft:#382a12;--blue:#6ea2ff;--blue-soft:#18273f;--green:#4ade80;--green-soft:#15301f;
-  --gray-soft:#22262d;--shadow:none;
-}}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
 button{font-family:inherit}
@@ -191,7 +185,7 @@ svg.chart{width:100%;height:170px;display:block}
   <div class="hero">
     <div><div class="date" id="today"></div><div class="sub" id="summary">加载中…</div></div>
     <span class="sp"></span>
-    <div class="tabs" id="tabs"><button data-t="todo" class="on">待办</button><button data-t="health">健康</button></div>
+    <div class="tabs" id="tabs"><button data-t="todo" class="on">待办</button><button data-t="health">健康</button><button data-t="kids">星星</button></div>
     <button class="iconbtn" id="refresh" title="刷新">⟳</button>
     <button class="iconbtn" id="settingsBtn" title="设置">⚙</button>
   </div>
@@ -227,6 +221,8 @@ svg.chart{width:100%;height:170px;display:block}
     </main>
   </div>
   </div>
+
+  <div id="tabKids" hidden><iframe id="kidsFrame" title="儿童积分" style="width:100%;height:calc(100vh - 110px);border:0;border-radius:16px;background:#fff;box-shadow:var(--shadow)"></iframe></div>
 
   <div id="tabHealth" hidden>
     <div class="daynav"><button id="hPrev">‹</button><b id="hDate"></b><span class="typebadge" id="hType"></span><span style="flex:1"></span><button id="hNext">›</button></div>
@@ -487,6 +483,7 @@ function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('s
 function showErr(e) { $('#err').innerHTML = e ? `<div class="banner">${esc(e.message || e)}</div>` : ''; }
 
 async function refresh() {
+  if (tab === 'kids') { $('#kidsFrame').contentWindow?.location.reload(); return; }
   if (!token) { render(); openSettings(); return; }
   loading = true; $('#refresh').classList.add('spin'); render();
   try { await loadOpen(); if (filter === 'done' || doneLoaded) await loadDone(); showErr(); }
@@ -589,13 +586,16 @@ $('#forget').onclick = () => { token = ''; store.del('life.token'); items = []; 
 
 
 // =================== 标签切换（#health 打开健康；#数字 打开某条待办） ===================
-let tab = location.hash === '#health' ? 'health' : 'todo';
+let tab = location.hash === '#health' ? 'health' : location.hash === '#kids' ? 'kids' : 'todo';
 function setTab(t) {
-  tab = t; $('#tabTodo').hidden = t !== 'todo'; $('#tabHealth').hidden = t !== 'health';
+  tab = t; $('#tabTodo').hidden = t !== 'todo'; $('#tabHealth').hidden = t !== 'health'; $('#tabKids').hidden = t !== 'kids';
   [...$('#tabs').children].forEach(b => b.classList.toggle('on', b.dataset.t === t));
+  // 待办页显示日期大标题；健康、星星页把头部收窄，留出空间
+  document.querySelector('.hero > div').hidden = t !== 'todo';
   if (t === 'health') { history.replaceState(null, '', '#health'); if (!health) loadHealth(); else renderHealth(); }
-  else if (location.hash === '#health') history.replaceState(null, '', location.pathname);
-  if (t === 'todo') render();
+  else if (t === 'kids') { history.replaceState(null, '', '#kids'); if (!$('#kidsFrame').src) $('#kidsFrame').src = '/child-score/'; }
+  else if (/^#(health|kids)$/.test(location.hash)) history.replaceState(null, '', location.pathname);
+  if (t === 'todo') { render(); if (!items.length && token && !loading) refresh(); }
 }
 $('#tabs').onclick = e => { const b = e.target.closest('[data-t]'); if (b) setTab(b.dataset.t); };
 

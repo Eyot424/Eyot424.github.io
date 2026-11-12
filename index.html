@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111214" media="(prefers-color-scheme: dark)">
+<title>待办</title>
+<style>
+:root{
+  --bg:#f6f7f9;--card:#fff;--text:#1d2025;--sub:#6b7280;--line:#e6e8eb;--accent:#2563eb;--accent-soft:#e8efff;
+  --red:#dc2626;--red-soft:#fdecec;--amber:#b45309;--amber-soft:#fdf3e1;--green:#15803d;--chip:#f0f2f5;--shadow:0 1px 2px rgba(0,0,0,.05);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#111214;--card:#1b1d21;--text:#e7e9ec;--sub:#9aa1ab;--line:#2a2d33;--accent:#6b9cff;--accent-soft:#1e2a44;
+  --red:#f87171;--red-soft:#3a1f22;--amber:#fbbf24;--amber-soft:#3a2f17;--green:#4ade80;--chip:#25282e;--shadow:none;
+}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:760px;margin:0 auto;padding:16px 16px calc(40px + env(safe-area-inset-bottom))}
+header{display:flex;align-items:center;gap:8px;margin:4px 0 14px}
+header h1{font-size:22px;margin:0;font-weight:650;letter-spacing:.5px}
+header .count{color:var(--sub);font-size:13px;margin-left:2px}
+header .sp{flex:1}
+.iconbtn{border:0;background:transparent;color:var(--sub);width:36px;height:36px;border-radius:10px;cursor:pointer;font-size:18px;display:grid;place-items:center}
+.iconbtn:hover{background:var(--chip);color:var(--text)}
+.spin{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.add{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;box-shadow:var(--shadow)}
+.add input[type=text]{width:100%;border:0;outline:0;background:transparent;color:var(--text);font-size:16px;padding:4px 0}
+.add .row{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.seg{display:inline-flex;background:var(--chip);border-radius:9px;padding:2px}
+.seg button{border:0;background:transparent;color:var(--sub);padding:5px 10px;border-radius:7px;font-size:13px;cursor:pointer}
+.seg button.on{background:var(--card);color:var(--text);box-shadow:var(--shadow)}
+input[type=date],input[type=time]{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:8px;padding:5px 8px;font-size:14px;font-family:inherit}
+.btn{border:0;background:var(--accent);color:#fff;border-radius:9px;padding:7px 14px;font-size:14px;cursor:pointer;font-weight:550}
+.btn.ghost{background:var(--chip);color:var(--text)}
+.btn.danger{background:var(--red-soft);color:var(--red)}
+.btn:disabled{opacity:.5;cursor:default}
+.tools{display:flex;gap:8px;margin:14px 0 4px;align-items:center}
+.search{flex:1;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:10px;padding:7px 10px;font-size:14px;outline:0}
+.filters{display:flex;gap:6px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--sub);border-radius:999px;padding:4px 11px;font-size:13px;white-space:nowrap;cursor:pointer}
+.chip.on{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+section{margin-top:18px}
+section h2{font-size:13px;font-weight:600;color:var(--sub);margin:0 4px 6px;display:flex;align-items:center;gap:6px}
+section h2 .n{font-weight:400}
+section.over h2{color:var(--red)}
+.list{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+.item{display:flex;gap:10px;align-items:flex-start;padding:11px 12px;border-top:1px solid var(--line);cursor:pointer}
+.item:first-child{border-top:0}
+.item:hover{background:color-mix(in srgb,var(--chip) 50%,transparent)}
+.check{flex:none;width:20px;height:20px;border-radius:50%;border:1.8px solid var(--sub);margin-top:2px;background:transparent;cursor:pointer;display:grid;place-items:center;color:transparent;font-size:12px;padding:0}
+.check:hover{border-color:var(--green);color:var(--green)}
+.item.done .check{background:var(--green);border-color:var(--green);color:#fff}
+.item.done .title{color:var(--sub);text-decoration:line-through}
+.body{flex:1;min-width:0}
+.title{word-break:break-word}
+.meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:3px;font-size:12px;color:var(--sub);align-items:center}
+.tag{background:var(--chip);border-radius:6px;padding:1px 6px}
+.tag.red{background:var(--red-soft);color:var(--red)}
+.tag.amber{background:var(--amber-soft);color:var(--amber)}
+.tag.blue{background:var(--accent-soft);color:var(--accent)}
+.note{font-size:13px;color:var(--sub);margin-top:2px;word-break:break-word}
+.note a{color:var(--accent)}
+.empty{color:var(--sub);text-align:center;padding:26px 0;font-size:14px}
+.more{display:block;margin:10px auto 0;color:var(--accent);background:none;border:0;cursor:pointer;font-size:13px}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#111;color:#fff;padding:8px 14px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:50;max-width:90vw}
+.toast.show{opacity:.92}
+dialog{border:0;border-radius:16px;padding:0;width:min(520px,94vw);background:var(--card);color:var(--text);box-shadow:0 20px 50px rgba(0,0,0,.25)}
+dialog::backdrop{background:rgba(0,0,0,.35)}
+.dlg{padding:18px}
+.dlg h3{margin:0 0 12px;font-size:17px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;color:var(--sub);margin-bottom:4px}
+.field input[type=text],.field input[type=password],.field textarea{width:100%;border:1px solid var(--line);background:var(--bg);color:var(--text);border-radius:9px;padding:8px 10px;font-size:15px;font-family:inherit;outline:0}
+.field textarea{min-height:70px;resize:vertical}
+.actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:6px}
+.actions .left{margin-right:auto}
+.hint{font-size:13px;color:var(--sub);line-height:1.6}
+.hint ol{padding-left:18px;margin:6px 0}
+.hint code{background:var(--chip);padding:1px 5px;border-radius:5px;font-size:12px}
+.banner{background:var(--red-soft);color:var(--red);border-radius:10px;padding:8px 12px;font-size:13px;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>待办</h1><span class="count" id="count"></span>
+    <span class="sp"></span>
+    <button class="iconbtn" id="refresh" title="刷新">⟳</button>
+    <button class="iconbtn" id="settingsBtn" title="设置">⚙</button>
+  </header>
+
+  <div class="add">
+    <input type="text" id="newTitle" placeholder="记点什么，回车保存" autocomplete="off">
+    <div class="row">
+      <div class="seg" id="newKind">
+        <button data-k="记住" class="on">不设日期</button><button data-k="有日期">日期</button><button data-k="定时">日期+时间</button>
+      </div>
+      <input type="date" id="newDate" hidden><input type="time" id="newTime" hidden>
+      <span style="flex:1"></span>
+      <button class="btn" id="addBtn">添加</button>
+    </div>
+  </div>
+  <div id="err"></div>
+
+  <div class="tools"><input class="search" id="q" placeholder="搜索"></div>
+  <div class="filters" id="filters">
+    <span class="chip on" data-f="all">全部</span><span class="chip" data-f="today">今天</span>
+    <span class="chip" data-f="week">7 天内</span><span class="chip" data-f="nodate">没日期</span><span class="chip" data-f="done">已完成</span>
+  </div>
+
+  <div id="main"><div class="empty">加载中…</div></div>
+</div>
+
+<dialog id="editDlg"><form method="dialog" class="dlg" id="editForm">
+  <h3>编辑 <span id="editNo" style="color:var(--sub);font-weight:400"></span></h3>
+  <div class="field"><label>内容</label><input type="text" id="eTitle" required></div>
+  <div class="field"><label>时间</label>
+    <div class="seg" id="eKind"><button type="button" data-k="记住">不设日期</button><button type="button" data-k="有日期">日期</button><button type="button" data-k="定时">日期+时间</button></div>
+    <div style="margin-top:8px;display:flex;gap:8px"><input type="date" id="eDate"><input type="time" id="eTime"></div>
+  </div>
+  <div class="field"><label>备注</label><textarea id="eNote"></textarea></div>
+  <div class="actions">
+    <a class="btn ghost left" id="eGh" target="_blank" rel="noopener" style="text-decoration:none">在 GitHub 看</a>
+    <button type="button" class="btn ghost" id="eCancel">取消</button>
+    <button type="button" class="btn" id="eToggle"></button>
+    <button type="button" class="btn" id="eSave">保存</button>
+  </div>
+</form></dialog>
+
+<dialog id="setDlg"><form method="dialog" class="dlg">
+  <h3>连接 GitHub</h3>
+  <div class="hint">待办存在你的私有仓库 <b id="repoName"></b>（每条一个 Issue），这个页面直接读写它。每台设备第一次打开要填一次令牌，只存在这台设备的浏览器里。
+    <ol>
+      <li>打开 <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">新建 Fine-grained token</a></li>
+      <li>Repository access 选 <b>Only select repositories</b>，只勾 <code>life</code></li>
+      <li>Permissions → Repository permissions → <b>Issues</b> 选 <b>Read and write</b>，别的都不给</li>
+      <li>生成后复制，粘到下面</li>
+    </ol>
+  </div>
+  <div class="field"><label>令牌</label><input type="password" id="tokenIn" placeholder="github_pat_…" autocomplete="off"></div>
+  <div class="field"><label>仓库</label><input type="text" id="repoIn"></div>
+  <div class="actions">
+    <button type="button" class="btn danger left" id="forget">退出（清除本机令牌）</button>
+    <button type="button" class="btn ghost" id="setCancel">取消</button>
+    <button type="button" class="btn" id="setSave">保存</button>
+  </div>
+</form></dialog>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const TZ_OFF = 8 * 60; // 北京时间
+const KINDS = ['记住', '有日期', '定时'];
+const $ = s => document.querySelector(s);
+const store = {
+  get: (k, d) => { try { return localStorage.getItem(k) ?? d; } catch { return d; } },
+  set: (k, v) => { try { localStorage.setItem(k, v); } catch {} },
+  del: k => { try { localStorage.removeItem(k); } catch {} },
+};
+let token = store.get('life.token', '');
+let repo = store.get('life.repo', 'Eyot424/life');
+let items = [], doneItems = [], doneLoaded = false, filter = 'all', loading = false;
+
+// ---------- 时间（全部按北京时间算） ----------
+function bjNow() { const d = new Date(); return new Date(d.getTime() + (d.getTimezoneOffset() + TZ_OFF) * 60000); }
+function ymd(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function addDays(s, n) { const d = new Date(s + 'T00:00:00'); d.setDate(d.getDate() + n); return ymd(d); }
+const WEEK = ['日', '一', '二', '三', '四', '五', '六'];
+function dayLabel(s) {
+  const t = ymd(bjNow()); const diff = Math.round((new Date(s + 'T00:00:00') - new Date(t + 'T00:00:00')) / 864e5);
+  const w = '周' + WEEK[new Date(s + 'T00:00:00').getDay()];
+  if (diff === 0) return '今天'; if (diff === 1) return '明天'; if (diff === 2) return '后天'; if (diff === -1) return '昨天';
+  return `${+s.slice(5, 7)}月${+s.slice(8, 10)}日 ${w}`;
+}
+
+// ---------- 解析与生成正文（与 bin/todo.py 同格式） ----------
+function parse(i) {
+  const b = i.body || '';
+  const t = b.match(/^时间：(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})/m);
+  const d = b.match(/^日期：(\d{4}-\d{2}-\d{2})/m);
+  const n = b.match(/^备注：(.*)$/m);
+  const kind = t ? '定时' : d ? '有日期' : '记住';
+  return { n: i.number, title: i.title, kind, date: t ? t[1] : d ? d[1] : '', time: t ? t[2] : '', note: n ? n[1] : '',
+    state: i.state, url: i.html_url, labels: i.labels.map(l => l.name), closed: i.closed_at, created: i.created_at };
+}
+function makeBody(kind, date, time, note) {
+  const L = [];
+  if (kind === '定时' && date && time) L.push(`时间：${date} ${time}`);
+  else if (kind !== '记住' && date) L.push(`日期：${date}`);
+  if (note) L.push(`备注：${note.replace(/\n+/g, ' ')}`);
+  return L.join('\n');
+}
+function effKind(kind, date, time) { return kind === '定时' && date && time ? '定时' : (kind !== '记住' && date ? '有日期' : '记住'); }
+
+// ---------- GitHub API ----------
+async function gh(method, path, body) {
+  const r = await fetch(`https://api.github.com/repos/${repo}/${path}`, {
+    method, headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28',
+      ...(body ? { 'Content-Type': 'application/json' } : {}) },
+    body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });
+  if (!r.ok) {
+    let m = ''; try { m = (await r.json()).message; } catch {}
+    const e = new Error(r.status === 401 ? '令牌无效或已过期，请在设置里重新填' : r.status === 404 ? '找不到仓库或令牌没有这个仓库的权限' : `GitHub 出错 ${r.status} ${m}`);
+    e.status = r.status; throw e;
+  }
+  return r.status === 204 ? null : r.json();
+}
+async function loadOpen() {
+  let all = [], page = 1;
+  while (true) {
+    const b = (await gh('GET', `issues?state=open&per_page=100&page=${page}`)).filter(x => !x.pull_request);
+    all = all.concat(b); if (b.length < 100) break; page++;
+  }
+  items = all.map(parse);
+}
+async function loadDone() {
+  const b = (await gh('GET', 'issues?state=closed&sort=updated&direction=desc&per_page=50')).filter(x => !x.pull_request);
+  doneItems = b.filter(x => x.state_reason !== 'not_planned').map(parse); doneLoaded = true;
+}
+
+// ---------- 渲染 ----------
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function linkify(s) { return esc(s).replace(/https?:\/\/[^\s，。）)]+/g, u => `<a href="${u}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${u.includes('/attachments/') ? '📎 附件' : '链接'}</a>`); }
+function row(it) {
+  const today = ymd(bjNow()); const now = bjNow(); let tags = '';
+  if (it.kind !== '记住') {
+    const late = it.state === 'open' && (it.date < today || (it.kind === '定时' && it.date === today && it.time < now.toTimeString().slice(0, 5)));
+    const cls = late ? 'red' : it.date === today ? 'amber' : 'blue';
+    tags += `<span class="tag ${cls}">${dayLabel(it.date)}${it.time ? ' ' + it.time : ''}</span>`;
+  }
+  if (it.state !== 'open' && it.closed) tags += `<span>完成于 ${it.closed.slice(5, 10).replace('-', '/')}</span>`;
+  tags += `<span>#${it.n}</span>`;
+  return `<div class="item ${it.state !== 'open' ? 'done' : ''}" data-n="${it.n}">
+    <button class="check" data-act="toggle" data-n="${it.n}" title="${it.state === 'open' ? '完成' : '撤回完成'}">✓</button>
+    <div class="body"><div class="title">${esc(it.title)}</div><div class="meta">${tags}</div>${it.note ? `<div class="note">${linkify(it.note)}</div>` : ''}</div></div>`;
+}
+function sectionHTML(title, list, cls = '') {
+  if (!list.length) return '';
+  return `<section class="${cls}"><h2>${title}<span class="n">${list.length}</span></h2><div class="list">${list.map(row).join('')}</div></section>`;
+}
+function render() {
+  const q = $('#q').value.trim().toLowerCase();
+  const match = it => !q || it.title.toLowerCase().includes(q) || it.note.toLowerCase().includes(q) || ('#' + it.n) === q;
+  const today = ymd(bjNow()), week = addDays(today, 7);
+  const open = items.filter(match);
+  $('#count').textContent = items.length ? `${items.length} 项未完成` : '';
+  let html = '';
+  if (filter === 'done') {
+    const d = doneItems.filter(match);
+    html = d.length ? sectionHTML('最近完成', d) : `<div class="empty">${doneLoaded ? '还没有完成的' : '加载中…'}</div>`;
+  } else {
+    const dated = open.filter(i => i.kind !== '记住').sort((a, b) => (a.date + (a.time || '99')).localeCompare(b.date + (b.time || '99')));
+    const over = dated.filter(i => i.date < today), tod = dated.filter(i => i.date === today);
+    const soon = dated.filter(i => i.date > today && i.date <= week), later = dated.filter(i => i.date > week);
+    const nod = open.filter(i => i.kind === '记住').sort((a, b) => b.n - a.n);
+    if (filter === 'all' || filter === 'today') html += sectionHTML('已过期', over, 'over') + sectionHTML('今天', tod);
+    if (filter === 'week') html += sectionHTML('已过期', over, 'over') + sectionHTML('今天', tod) + sectionHTML('接下来 7 天', soon);
+    if (filter === 'all') html += sectionHTML('接下来 7 天', soon) + sectionHTML('以后', later) + sectionHTML('没日期', nod);
+    if (filter === 'nodate') html += sectionHTML('没日期', nod);
+    if (!html) html = `<div class="empty">${loading ? '加载中…' : q ? '没有匹配的' : '这里是空的 🎉'}</div>`;
+  }
+  $('#main').innerHTML = html;
+}
+function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2200); }
+function showErr(e) { $('#err').innerHTML = e ? `<div class="banner">${esc(e.message || e)}</div>` : ''; }
+
+async function refresh() {
+  if (!token) { openSettings(); return; }
+  loading = true; $('#refresh').classList.add('spin');
+  try { await loadOpen(); if (filter === 'done' || doneLoaded) await loadDone(); showErr(); }
+  catch (e) { showErr(e); if (e.status === 401) openSettings(); }
+  loading = false; $('#refresh').classList.remove('spin'); render();
+}
+
+// ---------- 添加 ----------
+let newKind = '记住';
+$('#newKind').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return; newKind = b.dataset.k;
+  [...$('#newKind').children].forEach(x => x.classList.toggle('on', x === b));
+  $('#newDate').hidden = newKind === '记住'; $('#newTime').hidden = newKind !== '定时';
+  if (newKind !== '记住' && !$('#newDate').value) $('#newDate').value = ymd(bjNow());
+};
+async function add() {
+  const title = $('#newTitle').value.trim(); if (!title) return;
+  const date = $('#newDate').value, time = $('#newTime').value;
+  if (newKind === '定时' && !time) { toast('请选时间'); return; }
+  const kind = effKind(newKind, date, time);
+  $('#addBtn').disabled = true;
+  try {
+    const i = await gh('POST', 'issues', { title, body: makeBody(kind, date, time, ''), labels: [kind] });
+    items.push(parse(i)); $('#newTitle').value = ''; toast(`已记 #${i.number}`); render();
+  } catch (e) { showErr(e); }
+  $('#addBtn').disabled = false;
+}
+$('#addBtn').onclick = add;
+$('#newTitle').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) add(); });
+
+// ---------- 完成 / 撤回 ----------
+async function toggle(n) {
+  const it = items.find(x => x.n === n) || doneItems.find(x => x.n === n); if (!it) return;
+  const open = it.state === 'open';
+  try {
+    const i = await gh('PATCH', `issues/${n}`, open ? { state: 'closed', state_reason: 'completed' } : { state: 'open' });
+    const p = parse(i);
+    if (open) { items = items.filter(x => x.n !== n); doneItems = [p, ...doneItems.filter(x => x.n !== n)]; toast(`完成 #${n}`); }
+    else { doneItems = doneItems.filter(x => x.n !== n); items.push(p); toast(`已撤回 #${n}`); }
+    render();
+  } catch (e) { showErr(e); }
+}
+$('#main').addEventListener('click', e => {
+  const c = e.target.closest('[data-act=toggle]');
+  if (c) { e.stopPropagation(); toggle(+c.dataset.n); return; }
+  const r = e.target.closest('.item'); if (r) openEdit(+r.dataset.n);
+});
+
+// ---------- 编辑 ----------
+let editing = null, eKind = '记住';
+function setEKind(k) { eKind = k; [...$('#eKind').children].forEach(x => x.classList.toggle('on', x.dataset.k === k));
+  $('#eDate').hidden = k === '记住'; $('#eTime').hidden = k !== '定时'; if (k !== '记住' && !$('#eDate').value) $('#eDate').value = ymd(bjNow()); }
+$('#eKind').onclick = e => { const b = e.target.closest('button'); if (b) setEKind(b.dataset.k); };
+function openEdit(n) {
+  editing = items.find(x => x.n === n) || doneItems.find(x => x.n === n); if (!editing) return;
+  $('#editNo').textContent = '#' + n; $('#eTitle').value = editing.title; $('#eDate').value = editing.date; $('#eTime').value = editing.time;
+  $('#eNote').value = editing.note; $('#eGh').href = editing.url; setEKind(editing.kind);
+  $('#eToggle').textContent = editing.state === 'open' ? '完成' : '撤回完成'; $('#editDlg').showModal();
+}
+$('#eCancel').onclick = () => $('#editDlg').close();
+$('#eToggle').onclick = async () => { $('#editDlg').close(); await toggle(editing.n); };
+$('#eSave').onclick = async () => {
+  const title = $('#eTitle').value.trim(); if (!title) return;
+  const date = $('#eDate').value, time = $('#eTime').value;
+  if (eKind === '定时' && !time) { toast('请选时间'); return; }
+  const kind = effKind(eKind, date, time);
+  const timeChanged = kind !== editing.kind || date !== editing.date || time !== editing.time;
+  const labels = editing.labels.filter(l => !KINDS.includes(l) && !(timeChanged && l === '已提醒')).concat(kind);
+  $('#eSave').disabled = true;
+  try {
+    const i = await gh('PATCH', `issues/${editing.n}`, { title, body: makeBody(kind, date, time, $('#eNote').value.trim()), labels });
+    const p = parse(i); const list = p.state === 'open' ? items : doneItems; const k = list.findIndex(x => x.n === p.n); if (k >= 0) list[k] = p;
+    $('#editDlg').close(); toast(`已保存 #${p.n}`); render();
+  } catch (e) { showErr(e); }
+  $('#eSave').disabled = false;
+};
+
+// ---------- 过滤、搜索、刷新 ----------
+$('#filters').onclick = async e => {
+  const c = e.target.closest('.chip'); if (!c) return; filter = c.dataset.f;
+  [...$('#filters').children].forEach(x => x.classList.toggle('on', x === c)); render();
+  if (filter === 'done' && !doneLoaded) { try { await loadDone(); } catch (er) { showErr(er); } render(); }
+};
+$('#q').oninput = render;
+$('#refresh').onclick = refresh;
+document.addEventListener('visibilitychange', () => { if (!document.hidden && token) refresh(); });
+
+// ---------- 设置 ----------
+function openSettings() { $('#tokenIn').value = token; $('#repoIn').value = repo; $('#repoName').textContent = repo; $('#setDlg').showModal(); }
+$('#settingsBtn').onclick = openSettings;
+$('#setCancel').onclick = () => $('#setDlg').close();
+$('#setSave').onclick = () => { token = $('#tokenIn').value.trim(); repo = $('#repoIn').value.trim() || 'Eyot424/life';
+  store.set('life.token', token); store.set('life.repo', repo); $('#setDlg').close(); refresh(); };
+$('#forget').onclick = () => { token = ''; store.del('life.token'); items = []; doneItems = []; $('#setDlg').close(); render(); toast('已清除本机令牌'); };
+
+render(); refresh();
+</script>
+</body>
+</html>

@@ -182,16 +182,16 @@ function parse(i) {
   const b = i.body || '';
   const t = b.match(/^时间：(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})/m);
   const d = b.match(/^日期：(\d{4}-\d{2}-\d{2})/m);
-  const n = b.match(/^备注：(.*)$/m);
+  const n = b.match(/^备注：([\s\S]*)$/m);
   const kind = t ? '定时' : d ? '有日期' : '记住';
-  return { n: i.number, title: i.title, kind, date: t ? t[1] : d ? d[1] : '', time: t ? t[2] : '', note: n ? n[1] : '',
+  return { n: i.number, title: i.title, kind, date: t ? t[1] : d ? d[1] : '', time: t ? t[2] : '', note: n ? n[1].trimEnd() : '',
     state: i.state, url: i.html_url, labels: i.labels.map(l => l.name), closed: i.closed_at, created: i.created_at };
 }
 function makeBody(kind, date, time, note) {
   const L = [];
   if (kind === '定时' && date && time) L.push(`时间：${date} ${time}`);
   else if (kind !== '记住' && date) L.push(`日期：${date}`);
-  if (note) L.push(`备注：${note.replace(/\n+/g, ' ')}`);
+  if (note) L.push(`备注：${note}`);
   return L.join('\n');
 }
 function effKind(kind, date, time) { return kind === '定时' && date && time ? '定时' : (kind !== '记住' && date ? '有日期' : '记住'); }

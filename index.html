@@ -193,6 +193,10 @@ svg.chart{width:100%;height:170px;display:block}
   .addcard{order:1} main{order:2} .cal{order:3;margin-top:0}
 }
 
+
+.hero #refresh{margin-left:auto}
+@media (max-width:600px){ .plan{grid-template-columns:repeat(4,1fr)} }
+
 @media (max-width:520px){.stats{gap:8px}.stat{padding:10px 8px 8px}.stat .num{font-size:22px}.hero .date{font-size:24px}}
 </style>
 </head>
@@ -761,8 +765,8 @@ function renderHealth() {
     <div class="card hcard"><h3>吃了什么<span class="sp"></span><span class="muted">${d.meals.length} 顿</span></h3>${meals}</div>
     <div class="card hcard"><h3>本周每天</h3><div class="week">${week}</div><div class="wsum">${wsum}<br>柱子是吃了多少，横线是目标；红色是超了。</div></div>
     <div class="card hcard"><h3>体重</h3>${wline ? `<div class="left" style="margin-bottom:6px">${wline}</div>` : ''}${weightChart(last30)}</div>
-    <div class="card hcard"><h3>运动</h3>${ex}</div>
     ${reviewHTML(H, hDay)}
+    <div class="card hcard"><h3>运动</h3>${ex}</div>
     <div class="card hcard"><h3>每周安排</h3><div class="plan">${planHTML}</div><p class="muted" style="margin-top:10px">数据更新于 ${esc(H.generated || '–')}。记录在 Discord 健康频道里发，这里只看。</p></div>
   </div>`;
   document.querySelectorAll('[data-photo]').forEach(async img => { const u = await photoURL(img.dataset.photo); if (u) { img.src = u; img.onclick = () => { $('#lbImg').src = u; $('#lightbox').showModal(); }; } else img.remove(); });

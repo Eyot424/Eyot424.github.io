@@ -636,6 +636,59 @@ function weightChart(days) {
   return `<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${lab}${dots}<path d="${line}" fill="none" stroke="var(--accent)" stroke-width="2.5"/></svg>
     <div class="muted">灰点是每天称的体重，紫线是 7 天平均。看紫线的走势，不看单天。</div>`;
 }
+
+// ---------- 本周复盘（按方案第 2、5、8 节的规则给建议；照片估热量误差大，以体重走势为准） ----------
+function slopePerDay(pts) { // 最小二乘：每天变化多少公斤
+  if (pts.length < 2) return null;
+  const x0 = toD(pts[0].date); const xs = pts.map(p => (toD(p.date) - x0) / 864e5), ys = pts.map(p => p.weight);
+  const n = xs.length, mx = xs.reduce((a, b) => a + b) / n, my = ys.reduce((a, b) => a + b) / n;
+  const den = xs.reduce((a, x) => a + (x - mx) ** 2, 0); if (!den) return null;
+  return xs.reduce((a, x, i) => a + (x - mx) * (ys[i] - my), 0) / den;
+}
+function reviewHTML(H, anchor) {
+  const days = H.days || [], today = ymd(bjNow());
+  const mon = addDays(anchor, -((toD(anchor).getDay() + 6) % 7)), sun = addDays(mon, 6), end = sun < today ? sun : today;
+  const wk7 = days.filter(d => d.date >= mon && d.date <= end);
+  const prev = days.filter(d => d.date >= addDays(mon, -7) && d.date < mon);
+  const avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
+  const wNow = avg(wk7.filter(d => d.weight).map(d => d.weight)), wPrev = avg(prev.filter(d => d.weight).map(d => d.weight));
+  const ate = wk7.filter(d => d.eaten.kcal > 0 && d.target);
+  const plannedDef = ate.reduce((a, d) => a + (d.target.maint - d.target.kcal), 0);
+  const actualDef = ate.reduce((a, d) => a + (d.target.maint - d.eaten.kcal), 0);
+  const protOK = ate.filter(d => d.eaten.p >= d.target.protein * 0.9).length;
+  const free = wk7.reduce((a, d) => a + d.meals.filter(m => m.free).length, 0);
+  const lifts = wk7.reduce((a, d) => a + d.ex.filter(x => x.kind === '力量').length, 0);
+  const rows = [];
+  let pct = null;
+  if (wNow && wPrev) { pct = (wNow - wPrev) / wPrev * 100; rows.push(['体重', `本周平均 ${wNow.toFixed(2)}，比上周 ${(wNow - wPrev >= 0 ? '+' : '') + (wNow - wPrev).toFixed(2)} 公斤（${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%）`]); }
+  else if (wNow) rows.push(['体重', `本周平均 ${wNow.toFixed(2)}（上周没数据，下周起能比）`]);
+  else rows.push(['体重', '本周还没记体重']);
+  rows.push(['饮食记录', `${ate.length} / ${wk7.length || 7} 天记了` + (ate.length ? `；比维持少吃约 ${kcalFmt(actualDef)} 大卡（计划 ${kcalFmt(plannedDef)}）` : '')]);
+  if (ate.length) rows.push(['蛋白质', `${protOK} / ${ate.length} 天达标（≥ 目标 9 成）`]);
+  rows.push(['训练', `力量 ${lifts} 次 · 自由餐 ${free} 顿` + (free > 1 ? '（超过每周 1 顿）' : '')]);
+  // 维持热量校正：记满 14 天饮食、10 次体重
+  const last21 = days.filter(d => d.date > addDays(today, -21) && d.date <= today);
+  const wpts = last21.filter(d => d.weight), mdays = last21.filter(d => d.eaten.kcal > 0 && d.target);
+  let cal = '';
+  if (wpts.length >= 10 && mdays.length >= 14) {
+    const sl = slopePerDay(wpts), intake = avg(mdays.map(d => d.eaten.kcal)), real = intake - sl * 7700, model = avg(mdays.map(d => d.target.maint));
+    cal = `按近 ${mdays.length} 天实测，你的维持热量约 ${kcalFmt(real)} 大卡（公式估 ${kcalFmt(model)}，差 ${real - model >= 0 ? '+' : ''}${kcalFmt(real - model)}）`;
+  } else cal = `记满 14 天饮食、10 次体重后，会用你实际的体重变化反推真实维持热量（现在 ${mdays.length} 天、${wpts.length} 次）`;
+  rows.push(['维持热量', cal]);
+  // 减载
+  const dl = (H.profile?.deload_weeks || []).slice().sort().pop();
+  if (dl) { const n = Math.floor(diffDays(mon, dl) / 7); rows.push(['减载', n <= 0 ? '这周是减载周' : `距上次减载第 ${n} 周` + (n >= 4 ? '，减脂期该考虑减载了（看力量是否退步、睡眠和关节）' : '')]); }
+  // 建议
+  let tip;
+  if (pct == null) tip = '数据还不够两周，先照计划吃，每天早上称体重。';
+  else if (pct > -0.1) tip = '体重基本没降：下周核心日和周末每天再少吃 100～150 大卡（先确认这周记录是否完整、有没有漏记）。';
+  else if (pct < -0.7) tip = '降得偏快，容易掉肌肉：下周每天多吃 100～150 大卡，主要加碳水，放在训练前后。';
+  else tip = `每周降 ${(-pct).toFixed(2)}%，在 0.1～0.7% 的合理区间：下周照原计划。`;
+  return `<div class="card hcard wide"><h3>本周复盘<span class="sp"></span><span class="muted">${md(mon)}～${md(sun)}</span></h3>
+    ${rows.map(([k, v]) => `<div class="macro" style="grid-template-columns:70px 1fr;align-items:start"><b style="font-weight:600">${k}</b><span class="muted" style="color:var(--text)">${v}</span></div>`).join('')}
+    <div class="left" style="margin-top:12px;padding:10px 12px;background:var(--accent-soft);color:var(--accent);border-radius:10px">建议：${tip}</div></div>`;
+}
+
 function renderHealth() {
   const H = health; if (!H) return;
   const days = H.days || [];
@@ -693,6 +746,7 @@ function renderHealth() {
     <div class="card hcard"><h3>本周每天</h3><div class="week">${week}</div><div class="wsum">${wsum}<br>柱子是吃了多少，横线是目标；红色是超了。</div></div>
     <div class="card hcard"><h3>体重</h3>${wline ? `<div class="left" style="margin-bottom:6px">${wline}</div>` : ''}${weightChart(last30)}</div>
     <div class="card hcard"><h3>运动</h3>${ex}</div>
+    ${reviewHTML(H, hDay)}
     <div class="card hcard"><h3>每周安排</h3><div class="plan">${planHTML}</div><p class="muted" style="margin-top:10px">数据更新于 ${esc(H.generated || '–')}。记录在 Discord 健康频道里发，这里只看。</p></div>
   </div>`;
   document.querySelectorAll('[data-photo]').forEach(async img => { const u = await photoURL(img.dataset.photo); if (u) { img.src = u; img.onclick = () => { $('#lbImg').src = u; $('#lightbox').showModal(); }; } else img.remove(); });

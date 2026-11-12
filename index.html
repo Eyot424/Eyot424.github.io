@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#f4f5f8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0e1013" media="(prefers-color-scheme: dark)">
-<title>待办</title>
+<title>生活</title>
 <style>
 :root{
   --bg:#f4f5f8;--panel:#fff;--panel2:#f9fafb;--text:#16181d;--sub:#667085;--faint:#98a2b3;--line:#e7e9ee;
@@ -134,6 +134,55 @@ dialog::backdrop{background:rgba(10,12,16,.45);backdrop-filter:blur(2px)}
 #lightbox{width:auto;max-width:96vw;background:transparent;box-shadow:none}
 #lightbox img{max-width:96vw;max-height:88vh;border-radius:12px;display:block}
 @media (max-width:919px){.day{aspect-ratio:auto;height:38px}.cal{padding:10px 12px}}
+
+/* 顶部标签 */
+.tabs{display:inline-flex;background:var(--gray-soft);border-radius:12px;padding:3px;margin-right:8px}
+.tabs button{border:0;background:transparent;color:var(--sub);padding:7px 16px;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer}
+.tabs button.on{background:var(--panel);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.1)}
+/* 健康 */
+.hgrid{display:grid;gap:16px}
+@media (min-width:920px){.hgrid{grid-template-columns:1fr 1fr;align-items:start}.hgrid .wide{grid-column:1/-1}}
+.hcard{padding:16px}
+.hcard h3{margin:0 0 12px;font-size:15px;display:flex;align-items:center;gap:8px}
+.hcard h3 .sp{flex:1}
+.daynav{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.daynav button{border:1px solid var(--line);background:var(--panel);color:var(--text);width:34px;height:34px;border-radius:10px;cursor:pointer;font-size:16px}
+.daynav b{font-size:18px}
+.typebadge{font-size:12px;font-weight:600;border-radius:8px;padding:3px 9px;background:var(--accent-soft);color:var(--accent)}
+.big{display:flex;align-items:baseline;gap:8px}
+.big .n{font-size:38px;font-weight:750;line-height:1}
+.big .of{color:var(--sub);font-size:15px}
+.bar{height:10px;background:var(--gray-soft);border-radius:6px;overflow:hidden;margin:10px 0 4px;position:relative}
+.bar i{display:block;height:100%;border-radius:6px;background:var(--green)}
+.bar i.warn{background:var(--amber)} .bar i.over{background:var(--red)}
+.left{font-size:13px;color:var(--sub)}
+.macro{display:grid;grid-template-columns:52px 1fr 92px;gap:10px;align-items:center;font-size:13px;margin-top:10px}
+.macro .bar{margin:0;height:8px}
+.macro .v{text-align:right;color:var(--sub);font-variant-numeric:tabular-nums}
+.meal{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.meal:first-of-type{border-top:0}
+.meal .t{color:var(--faint);font-size:12px;width:40px;flex:none;padding-top:2px}
+.meal .d{flex:1;min-width:0}
+.meal .k{font-weight:650;white-space:nowrap}
+.chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
+.chip{font-size:11px;border-radius:6px;padding:1px 6px;background:var(--gray-soft);color:var(--sub)}
+.chip.p{background:var(--blue-soft);color:var(--blue)} .chip.free{background:var(--amber-soft);color:var(--amber)}
+.mphoto{width:56px;height:56px;border-radius:10px;object-fit:cover;border:1px solid var(--line);cursor:zoom-in;flex:none}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end;height:150px;margin-top:6px}
+.wcol{display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;cursor:pointer}
+.wbar{position:relative;width:70%;background:var(--gray-soft);border-radius:6px 6px 3px 3px;height:100px;overflow:hidden}
+.wbar i{position:absolute;left:0;right:0;bottom:0;background:var(--green);border-radius:6px 6px 0 0}
+.wbar i.over{background:var(--red)} .wbar .tl{position:absolute;left:-2px;right:-2px;height:2px;background:var(--text);opacity:.55}
+.wcol .l{font-size:11px;color:var(--sub);text-align:center;line-height:1.3}
+.wcol.sel .l{color:var(--accent);font-weight:700}
+.wsum{font-size:13px;color:var(--sub);margin-top:10px}
+svg.chart{width:100%;height:170px;display:block}
+.plan{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center}
+.plan div{background:var(--gray-soft);border-radius:10px;padding:8px 2px;font-size:12px}
+.plan div b{display:block;font-size:13px;margin-bottom:2px}
+.plan div.today{background:var(--accent-soft);color:var(--accent)}
+.muted{color:var(--sub);font-size:13px}
+
 @media (max-width:520px){.stats{gap:8px}.stat{padding:10px 8px 8px}.stat .num{font-size:22px}.hero .date{font-size:24px}}
 </style>
 </head>
@@ -142,11 +191,13 @@ dialog::backdrop{background:rgba(10,12,16,.45);backdrop-filter:blur(2px)}
   <div class="hero">
     <div><div class="date" id="today"></div><div class="sub" id="summary">加载中…</div></div>
     <span class="sp"></span>
+    <div class="tabs" id="tabs"><button data-t="todo" class="on">待办</button><button data-t="health">健康</button></div>
     <button class="iconbtn" id="refresh" title="刷新">⟳</button>
     <button class="iconbtn" id="settingsBtn" title="设置">⚙</button>
   </div>
   <div id="err"></div>
 
+  <div id="tabTodo">
   <div class="stats" id="stats">
     <button class="stat red" data-f="over"><div class="num" id="sOver">–</div><div class="lab"><span class="dot"></span>已过期</div></button>
     <button class="stat amber" data-f="today"><div class="num" id="sToday">–</div><div class="lab"><span class="dot"></span>今天</div></button>
@@ -174,6 +225,12 @@ dialog::backdrop{background:rgba(10,12,16,.45);backdrop-filter:blur(2px)}
       <div class="filterbar" id="filterbar"></div>
       <div id="list"></div>
     </main>
+  </div>
+  </div>
+
+  <div id="tabHealth" hidden>
+    <div class="daynav"><button id="hPrev">‹</button><b id="hDate"></b><span class="typebadge" id="hType"></span><span style="flex:1"></span><button id="hNext">›</button></div>
+    <div id="hBody"><div class="empty">加载中…</div></div>
   </div>
 </div>
 
@@ -435,6 +492,7 @@ async function refresh() {
   try { await loadOpen(); if (filter === 'done' || doneLoaded) await loadDone(); showErr(); }
   catch (e) { showErr(e); if (e.status === 401) openSettings(); }
   loading = false; $('#refresh').classList.remove('spin'); render();
+  if (tab === 'health') await loadHealth();
   const m = location.hash.match(/^#(\d+)$/); // 链接带 #编号 就直接打开那一条
   if (m && !$('#editDlg').open) { const n = +m[1]; if (!items.some(x => x.n === n) && !doneLoaded) { try { await loadDone(); } catch {} }
     openEdit(n); history.replaceState(null, '', location.pathname); }
@@ -522,13 +580,128 @@ $('#eSave').onclick = async () => {
 $('#q').oninput = render;
 $('#refresh').onclick = refresh;
 document.addEventListener('visibilitychange', () => { if (!document.hidden && token) refresh(); });
-function openSettings() { $('#tokenIn').value = token; $('#repoIn').value = repo; $('#repoName').textContent = repo; $('#setDlg').showModal(); }
+function openSettings() { if ($('#setDlg').open) return; $('#tokenIn').value = token; $('#repoIn').value = repo; $('#repoName').textContent = repo; $('#setDlg').showModal(); }
 $('#settingsBtn').onclick = openSettings;
 $('#setCancel').onclick = () => $('#setDlg').close();
 $('#setSave').onclick = () => { token = $('#tokenIn').value.trim(); repo = $('#repoIn').value.trim() || 'Eyot424/life';
   store.set('life.token', token); store.set('life.repo', repo); imgCache.clear(); $('#setDlg').close(); refresh(); };
 $('#forget').onclick = () => { token = ''; store.del('life.token'); items = []; doneItems = []; $('#setDlg').close(); render(); toast('已清除本机令牌'); };
 
+
+// =================== 标签切换（#health 打开健康；#数字 打开某条待办） ===================
+let tab = location.hash === '#health' ? 'health' : 'todo';
+function setTab(t) {
+  tab = t; $('#tabTodo').hidden = t !== 'todo'; $('#tabHealth').hidden = t !== 'health';
+  [...$('#tabs').children].forEach(b => b.classList.toggle('on', b.dataset.t === t));
+  if (t === 'health') { history.replaceState(null, '', '#health'); if (!health) loadHealth(); else renderHealth(); }
+  else if (location.hash === '#health') history.replaceState(null, '', location.pathname);
+  if (t === 'todo') render();
+}
+$('#tabs').onclick = e => { const b = e.target.closest('[data-t]'); if (b) setTab(b.dataset.t); };
+
+// =================== 健康（只读：数据由 Discord 健康频道的机器人记，存在 life/health/summary.json） ===================
+let health = null, hDay = null;
+async function loadHealth() {
+  if (!token) { openSettings(); return; }
+  try {
+    const blob = await gh('GET', 'contents/health/summary.json', null, true);
+    health = JSON.parse(await blob.text()); showErr();
+  } catch (e) { health = { days: [], error: e.status === 404 ? '还没有健康数据（在 Discord 健康频道发体重或饮食后就会有）' : e.message }; }
+  if (!hDay) hDay = ymd(bjNow());
+  renderHealth();
+}
+const photoCache = new Map();
+function photoURL(path) {
+  if (!photoCache.has(path)) photoCache.set(path, gh('GET', `contents/${encPath(path)}`, null, true).then(b => URL.createObjectURL(b)).catch(() => null));
+  return photoCache.get(path);
+}
+const kcalFmt = n => (n == null ? '–' : Math.round(n).toLocaleString());
+function pctBar(val, goal, mode) { // mode: 'max' 不超为好；'min' 越多越好
+  const pc = goal ? Math.min(100, val / goal * 100) : 0;
+  let cls = '';
+  if (mode === 'max') cls = val > goal * 1.03 ? 'over' : val > goal * 0.9 ? 'warn' : '';
+  return `<div class="bar"><i class="${cls}" style="width:${pc}%"></i></div>`;
+}
+function weightChart(days) {
+  const pts = days.filter(d => d.weight || d.avg7);
+  if (pts.length < 2) return '<p class="muted">体重记到两天以上就会出现曲线。每天早上起床、上完厕所、吃东西前称一次。</p>';
+  const W = 600, H = 170, P = 26;
+  const vals = pts.flatMap(d => [d.weight, d.avg7].filter(Boolean));
+  let lo = Math.min(...vals), hi = Math.max(...vals); if (hi - lo < 1) { lo -= .5; hi += .5; }
+  const x = i => P + i * (W - 2 * P) / (days.length - 1), y = v => H - P - (v - lo) / (hi - lo) * (H - 2 * P);
+  const idx = d => days.indexOf(d);
+  const line = pts.filter(d => d.avg7).map((d, k) => `${k ? 'L' : 'M'}${x(idx(d)).toFixed(1)},${y(d.avg7).toFixed(1)}`).join(' ');
+  const dots = pts.filter(d => d.weight).map(d => `<circle cx="${x(idx(d)).toFixed(1)}" cy="${y(d.weight).toFixed(1)}" r="3" fill="var(--faint)"/>`).join('');
+  const lab = [hi, (hi + lo) / 2, lo].map(v => `<text x="2" y="${y(v) + 4}" font-size="11" fill="var(--faint)">${v.toFixed(1)}</text>`).join('');
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${lab}${dots}<path d="${line}" fill="none" stroke="var(--accent)" stroke-width="2.5"/></svg>
+    <div class="muted">灰点是每天称的体重，紫线是 7 天平均。看紫线的走势，不看单天。</div>`;
+}
+function renderHealth() {
+  const H = health; if (!H) return;
+  const days = H.days || [];
+  const today = ymd(bjNow());
+  const d = days.find(x => x.date === hDay) || { date: hDay, eaten: { kcal: 0, p: 0, c: 0, f: 0 }, meals: [], ex: [], target: null };
+  $('#hDate').textContent = `${md(hDay)} ${wk(hDay)}${hDay === today ? ' · 今天' : ''}`;
+  const t = d.target;
+  $('#hType').textContent = t ? `${t.type}日` : ''; $('#hType').hidden = !t;
+  if (H.error) { $('#hBody').innerHTML = `<div class="empty"><b>🩺</b>${esc(H.error)}</div>`; return; }
+  const e = d.eaten;
+  // 今日热量
+  let kc;
+  if (t) {
+    const left = t.kcal - e.kcal;
+    kc = `<div class="big"><span class="n">${kcalFmt(e.kcal)}</span><span class="of">/ ${kcalFmt(t.kcal)} 大卡</span></div>
+      ${pctBar(e.kcal, t.kcal, 'max')}
+      <div class="left">${left >= 0 ? `还能吃 <b>${kcalFmt(left)}</b> 大卡` : `<span style="color:var(--red)">超了 <b>${kcalFmt(-left)}</b> 大卡</span>`} · 维持约 ${kcalFmt(t.maint)}</div>
+      <div class="macro"><span>蛋白质</span>${pctBar(e.p, t.protein, 'min')}<span class="v">${e.p} / ${t.protein} 克</span></div>
+      <div class="macro"><span>碳水</span>${pctBar(e.c, t.carb, 'max')}<span class="v">${e.c} / ${t.carb} 克</span></div>
+      <div class="macro"><span>脂肪</span>${pctBar(e.f, t.fat_min, 'min')}<span class="v">${e.f} / ≥${t.fat_min} 克</span></div>
+      ${e.p < t.protein && hDay === today ? `<div class="left" style="margin-top:10px">蛋白质还差 ${t.protein - e.p} 克，下一顿优先补。</div>` : ''}`;
+  } else kc = '<p class="muted">还没有体重，算不出今天的目标。在 Discord 健康频道发一下早上的体重就有了。</p>';
+  // 吃了什么
+  const meals = d.meals.length ? d.meals.map((m, i) => `<div class="meal">
+      <span class="t">${m.time || ''}</span>
+      <div class="d"><div>${esc(m.desc)}</div><div class="chips"><span class="chip p">蛋白 ${m.p ?? '–'}</span><span class="chip">碳水 ${m.c ?? '–'}</span><span class="chip">脂肪 ${m.f ?? '–'}</span><span class="chip">把握：${m.conf || '中'}</span>${m.free ? '<span class="chip free">自由餐</span>' : ''}</div></div>
+      <span class="k">${kcalFmt(m.kcal)}</span>${m.photo ? `<img class="mphoto" data-photo="${esc(m.photo)}" alt="">` : ''}</div>`).join('')
+    : '<p class="muted">这天还没记饮食。在 Discord 健康频道发饭菜照片就会记上。</p>';
+  const ex = d.ex.length ? d.ex.map(x => `<div class="meal"><span class="t">${x.kind}</span><div class="d">${esc(x.desc || '')}<div class="chips">${x.min ? `<span class="chip">${x.min} 分钟</span>` : ''}${x.steps ? `<span class="chip">${x.steps.toLocaleString()} 步</span>` : ''}${x.kcal ? `<span class="chip">约 ${x.kcal} 大卡</span>` : ''}</div></div></div>`).join('')
+    : '<p class="muted">这天还没记运动。</p>';
+  // 本周（周一到周日）
+  const dt = toD(hDay); const mon = addDays(hDay, -((dt.getDay() + 6) % 7));
+  const wdays = [...Array(7)].map((_, i) => { const s = addDays(mon, i); return days.find(x => x.date === s) || { date: s, eaten: { kcal: 0 }, target: null }; });
+  const maxv = Math.max(1, ...wdays.map(w => Math.max(w.eaten.kcal || 0, w.target?.kcal || 0)));
+  const week = wdays.map(w => { const h = (w.eaten.kcal || 0) / maxv * 100, th = w.target ? w.target.kcal / maxv * 100 : null;
+    return `<div class="wcol ${w.date === hDay ? 'sel' : ''}" data-d="${w.date}"><div class="wbar"><i class="${w.target && w.eaten.kcal > w.target.kcal ? 'over' : ''}" style="height:${h}%"></i>${th ? `<span class="tl" style="bottom:${th}%"></span>` : ''}</div>
+      <div class="l">${'一二三四五六日'[(toD(w.date).getDay() + 6) % 7]}<br>${w.target ? w.target.type.replace('+自由餐', '·餐') : ''}</div></div>`; }).join('');
+  const logged = wdays.filter(w => w.date <= today && w.target && w.eaten.kcal > 0);
+  const deficit = logged.reduce((a, w) => a + (w.target.maint - w.eaten.kcal), 0);
+  const wsum = logged.length ? `已记 ${logged.length} 天：比维持少吃约 ${kcalFmt(deficit)} 大卡（照片估算，仅供参考）` : '本周还没有完整记录';
+  // 体重
+  const last30 = days.slice(-30);
+  const ws = days.filter(x => x.weight);
+  const lastW = ws.length ? ws[ws.length - 1] : null;
+  const a7 = days.filter(x => x.avg7); const cur = a7.length ? a7[a7.length - 1].avg7 : null;
+  const prevAvg = (() => { const ref = addDays(today, -7); const p = days.filter(x => x.date <= ref && x.avg7); return p.length ? p[p.length - 1].avg7 : null; })();
+  const wline = lastW ? `最近一次 <b>${lastW.weight}</b> 公斤（${md(lastW.date)}）· 7 天平均 <b>${cur}</b>${prevAvg ? ` · 比一周前 ${(cur - prevAvg >= 0 ? '+' : '') + (cur - prevAvg).toFixed(2)} 公斤` : ''}` : '';
+  // 每周安排
+  const plan = H.profile?.plan || {};
+  const tw = '一二三四五六日'[(bjNow().getDay() + 6) % 7];
+  const planHTML = '一二三四五六日'.split('').map(k => `<div class="${k === tw ? 'today' : ''}"><b>${k}</b>${plan[k] || '–'}${k === H.profile?.free_day ? '<br>+自由餐' : ''}</div>`).join('');
+  $('#hBody').innerHTML = `<div class="hgrid">
+    <div class="card hcard"><h3>热量与三大营养素</h3>${kc}</div>
+    <div class="card hcard"><h3>吃了什么<span class="sp"></span><span class="muted">${d.meals.length} 顿</span></h3>${meals}</div>
+    <div class="card hcard"><h3>本周每天</h3><div class="week">${week}</div><div class="wsum">${wsum}<br>柱子是吃了多少，横线是目标；红色是超了。</div></div>
+    <div class="card hcard"><h3>体重</h3>${wline ? `<div class="left" style="margin-bottom:6px">${wline}</div>` : ''}${weightChart(last30)}</div>
+    <div class="card hcard"><h3>运动</h3>${ex}</div>
+    <div class="card hcard"><h3>每周安排</h3><div class="plan">${planHTML}</div><p class="muted" style="margin-top:10px">数据更新于 ${esc(H.generated || '–')}。记录在 Discord 健康频道里发，这里只看。</p></div>
+  </div>`;
+  document.querySelectorAll('[data-photo]').forEach(async img => { const u = await photoURL(img.dataset.photo); if (u) { img.src = u; img.onclick = () => { $('#lbImg').src = u; $('#lightbox').showModal(); }; } else img.remove(); });
+  document.querySelectorAll('.wcol').forEach(c => c.onclick = () => { hDay = c.dataset.d; renderHealth(); });
+}
+$('#hPrev').onclick = () => { hDay = addDays(hDay, -1); renderHealth(); };
+$('#hNext').onclick = () => { hDay = addDays(hDay, 1); renderHealth(); };
+
+setTab(tab);
 refresh();
 </script>
 </body>

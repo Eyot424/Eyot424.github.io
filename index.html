@@ -325,7 +325,13 @@ $('#lightbox').addEventListener('click', () => $('#lightbox').close());
 
 // ---------- 渲染 ----------
 function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
-function noteHTML(s) {
+function noteHTML(s) { return linkHTML(cleanNote(s)); }
+function cleanNote(s) {
+  // 附件链接已经显示成缩略图，正文里去掉；只剩「照片：」这类标签的行整行去掉
+  return s.replace(new RegExp(`https://github\\.com/${repo.replace('/', '\\/')}/(tree|blob)/\\S+`, 'g'), '')
+       .split('\n').filter(l => !/^\s*[^：:]{0,8}[：:]\s*$/.test(l)).join('\n').replace(/(资料|照片|幻灯片照片|附件|图片)[：:][，,；;、\s]*$/gm, '').replace(/[，,；;、\s]+$/gm, '').trim();
+}
+function linkHTML(s) {
   return esc(s).replace(/https?:\/\/[^\s，。）)]+/g, u => `<a href="${u}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${attachLinks(u).length ? '📎 附件' : '🔗 链接'}</a>`);
 }
 function status(it) {
@@ -342,14 +348,14 @@ function status(it) {
 function card(it) {
   const s = status(it);
   const dateInfo = it.date ? `<span>📅 ${md(it.date)} ${wk(it.date)}${it.time ? ' ' + it.time : ''}</span>` : '';
-  const long = it.note && (it.note.split('\n').length > 3 || it.note.length > 120);
+  const shown = cleanNote(it.note || ''); const long = shown && (shown.split('\n').length > 3 || shown.length > 120);
   const open = expanded.has(it.n);
   return `<div class="item k-${s.k} ${it.state !== 'open' ? 'done' : ''}" data-n="${it.n}">
     <button class="check" data-act="toggle" data-n="${it.n}" title="${it.state === 'open' ? '完成' : '撤回完成'}">✓</button>
     <div class="body">
       <div class="top"><div class="title">${esc(it.title)}</div>${s.badge}</div>
       <div class="meta">${dateInfo}<span>#${it.n}</span></div>
-      ${it.note ? `<div class="note ${long && !open ? 'clamp' : ''}">${noteHTML(it.note)}</div>${long ? `<button class="more" data-act="more" data-n="${it.n}">${open ? '收起' : '展开全部'}</button>` : ''}` : ''}
+      ${shown ? `<div class="note ${long && !open ? 'clamp' : ''}">${noteHTML(it.note)}</div>${long ? `<button class="more" data-act="more" data-n="${it.n}">${open ? '收起' : '展开全部'}</button>` : ''}` : ''}
       ${attachLinks(it.note).length ? `<div class="thumbs" data-thumbs="${it.n}"></div>` : ''}
     </div></div>`;
 }

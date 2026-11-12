@@ -600,6 +600,8 @@ function setTab(t) {
 $('#tabs').onclick = e => { const b = e.target.closest('[data-t]'); if (b) setTab(b.dataset.t); };
 
 // =================== 健康（只读：数据由 Discord 健康频道的机器人记，存在 life/health/summary.json） ===================
+const TYPE_LABEL = { '维持': '力量·吃到维持', '休息': '休息·带娃走动', '核心': '核心拉伸', '力量': '力量', '有氧': '有氧' };
+const typeLabel = t => (t || '').split('+').map((x, i) => i ? '+' + x : (TYPE_LABEL[x] || x)).join('');
 let health = null, hDay = null;
 async function loadHealth() {
   if (!token) { openSettings(); return; }
@@ -643,7 +645,7 @@ function renderHealth() {
   const d = days.find(x => x.date === hDay) || { date: hDay, eaten: { kcal: 0, p: 0, c: 0, f: 0 }, meals: [], ex: [], target: null };
   $('#hDate').textContent = `${md(hDay)} ${wk(hDay)}${hDay === today ? ' · 今天' : ''}`;
   const t = d.target;
-  $('#hType').textContent = t ? `${t.type}日` : ''; $('#hType').hidden = !t;
+  $('#hType').textContent = t ? typeLabel(t.type) : ''; $('#hType').hidden = !t;
   if (H.error) { $('#hBody').innerHTML = `<div class="empty"><b>🩺</b>${esc(H.error)}</div>`; return; }
   const e = d.eaten;
   // 今日热量
@@ -672,7 +674,7 @@ function renderHealth() {
   const maxv = Math.max(1, ...wdays.map(w => Math.max(w.eaten.kcal || 0, w.target?.kcal || 0)));
   const week = wdays.map(w => { const h = (w.eaten.kcal || 0) / maxv * 100, th = w.target ? w.target.kcal / maxv * 100 : null;
     return `<div class="wcol ${w.date === hDay ? 'sel' : ''}" data-d="${w.date}"><div class="wbar"><i class="${w.target && w.eaten.kcal > w.target.kcal ? 'over' : ''}" style="height:${h}%"></i>${th ? `<span class="tl" style="bottom:${th}%"></span>` : ''}</div>
-      <div class="l">${'一二三四五六日'[(toD(w.date).getDay() + 6) % 7]}<br>${w.target ? w.target.type.replace('+自由餐', '·餐') : ''}</div></div>`; }).join('');
+      <div class="l">${'一二三四五六日'[(toD(w.date).getDay() + 6) % 7]}<br>${w.target ? (TYPE_LABEL[w.target.type.split('+')[0]] || w.target.type).split('·')[0] + (w.target.type.includes('自由餐') ? '·餐' : w.target.type.startsWith('维持') ? '·维持' : '') : ''}</div></div>`; }).join('');
   const logged = wdays.filter(w => w.date <= today && w.target && w.eaten.kcal > 0);
   const deficit = logged.reduce((a, w) => a + (w.target.maint - w.eaten.kcal), 0);
   const wsum = logged.length ? `已记 ${logged.length} 天：比维持少吃约 ${kcalFmt(deficit)} 大卡（照片估算，仅供参考）` : '本周还没有完整记录';
@@ -686,7 +688,7 @@ function renderHealth() {
   // 每周安排
   const plan = H.profile?.plan || {};
   const tw = '一二三四五六日'[(bjNow().getDay() + 6) % 7];
-  const planHTML = '一二三四五六日'.split('').map(k => `<div class="${k === tw ? 'today' : ''}"><b>${k}</b>${plan[k] || '–'}${k === H.profile?.free_day ? '<br>+自由餐' : ''}</div>`).join('');
+  const planHTML = '一二三四五六日'.split('').map(k => `<div class="${k === tw ? 'today' : ''}"><b>${k}</b>${(TYPE_LABEL[plan[k]] || plan[k] || '–').replace('·', '<br>')}${k === H.profile?.free_day ? '<br>+自由餐' : ''}</div>`).join('');
   $('#hBody').innerHTML = `<div class="hgrid">
     <div class="card hcard"><h3>热量与三大营养素</h3>${kc}</div>
     <div class="card hcard"><h3>吃了什么<span class="sp"></span><span class="muted">${d.meals.length} 顿</span></h3>${meals}</div>

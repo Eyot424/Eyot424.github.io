@@ -222,7 +222,7 @@ svg.chart{width:100%;height:170px;display:block}
   </div>
   </div>
 
-  <div id="tabKids" hidden><iframe id="kidsFrame" title="儿童积分" style="width:100%;height:calc(100vh - 110px);border:0;border-radius:16px;background:#fff;box-shadow:var(--shadow)"></iframe></div>
+  <div id="tabKids" hidden><iframe id="kidsFrame" title="儿童积分" onload="if(this.src)this.dataset.loaded=1" style="width:100%;height:calc(100vh - 110px);border:0;border-radius:16px;background:#fff;box-shadow:var(--shadow)"></iframe></div>
 
   <div id="tabHealth" hidden>
     <div class="daynav"><button id="hPrev">‹</button><b id="hDate"></b><span class="typebadge" id="hType"></span><span style="flex:1"></span><button id="hNext">›</button></div>
@@ -483,7 +483,7 @@ function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('s
 function showErr(e) { $('#err').innerHTML = e ? `<div class="banner">${esc(e.message || e)}</div>` : ''; }
 
 async function refresh() {
-  if (tab === 'kids') { $('#kidsFrame').contentWindow?.location.reload(); return; }
+  if (tab === 'kids') { const f = $('#kidsFrame'); if (f.dataset.loaded) f.contentWindow.location.reload(); return; } // 首次加载时别打断
   if (!token) { render(); openSettings(); return; }
   loading = true; $('#refresh').classList.add('spin'); render();
   try { await loadOpen(); if (filter === 'done' || doneLoaded) await loadDone(); showErr(); }
